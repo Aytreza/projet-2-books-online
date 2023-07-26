@@ -3,6 +3,19 @@ from bs4 import BeautifulSoup
 from constants import ALL_CATEGORIES
 
 
+def ask_user_choice():
+    while True:
+        choice_str = input("Choisissez la catégorie (de 1 à 50) : ")
+        try:
+            choice_int = int(choice_str)
+        except ValueError:
+            print("ERREUR : choisissez un nombre entre 1 et 50")
+        else:
+            if choice_int < 1 or choice_int > 50:
+                print("ERREUR : choisissez un nombre entre 1 et 50")
+            else:
+                return choice_int
+
 def print_user_choices():
     categories_list = []
     for i in range(1, len(ALL_CATEGORIES)+1):
