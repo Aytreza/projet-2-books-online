@@ -2,12 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 
 from constants import ALL_CATEGORIES
-from functions import next_page_url
+from functions import next_page_url_suffix
 
 
 class Category:
-    BASE_URL_CATEGORIES = "http://books.toscrape.com/catalogue/category/books/"
-    BASE_URL_BOOKS = "http://books.toscrape.com/catalogue/"
+    BASE_URL = "http://books.toscrape.com/catalogue/"
+    BASE_URL_CATEGORIES = f"{BASE_URL}category/books/"
 
     def __init__(self, index: int):
         self.index = index
@@ -15,26 +15,37 @@ class Category:
 
     def url(self):
         name = self.name
-        url_suffix = f"{name.lower().replace(' ', '-')}_{self.index}/index.html"
+        # Exemple :
+        # Historical Fiction
+        # historical-fiction_4/index.html
+        url_suffix = f"{name.lower().replace(' ', '-')}_{self.index+1}/index.html" # index + 1 car urls commencent à 2
         return f"{Category.BASE_URL_CATEGORIES}{url_suffix}"
 
-    def parse_book_url(relative_path: str):
-        return f"{Category.BASE_URL_BOOKS}{relative_path.replace('../', '')}"
+    def relative_to_absolute_path(relative_path: str):
+        # Exemple :
+        # ../../../tipping-the-velvet_999/index.html
+        # http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
+        return f"{Category.BASE_URL}{relative_path.replace('../', '')}"
 
-    def books_url(self, url="", urls=[]):
+    def books_url(self, url="", urls_relative=[]):
+        """
+        Si url == "", premier passage dans la fonction, l'url devient self.url
+        Sinon, cela implique un appel récursif avec l'url de la page suivante
+        """
         if url == "":
             url = self.url()
         page = requests.get(url)
-        soup = BeautifulSoup(page.content, "html.parser")
-        products = soup.find_all("article", class_="product_pod")
+        soup_object = BeautifulSoup(page.content, "html.parser")
+        products = soup_object.find_all("article", class_="product_pod")
         for product in products:
-            urls.append(product.find("h3").find("a")['href'])
-        next_page_name = next_page_url(soup)
-        if next_page_name:
-            next_url = url.replace("index.html", next_page_name)
-            return self.books_url(next_url, urls)
-        # return urls
+            urls_relative.append(product.find("h3").find("a")['href'])
+        # Après avoir bouclé sur les livres de la page active, on vérifie si la  page suivante existe
+        _next_page_url_suffix = next_page_url_suffix(soup_object)
+        if _next_page_url_suffix:
+            next_url = url.replace("index.html", _next_page_url_suffix)
+            # Appel récursif si la page suivante existe
+            return self.books_url(next_url, urls_relative)
         urls_absolute = []
-        for url_relative in urls:
-            urls_absolute.append(Category.parse_book_url(url_relative))
+        for url_relative in urls_relative:
+            urls_absolute.append(Category.relative_to_absolute_path(url_relative))
         return urls_absolute
