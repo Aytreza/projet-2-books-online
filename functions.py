@@ -6,10 +6,12 @@ def pounds_to_euros(pounds):
     return round(pounds * 0.86, 2)
 
 
-def next_page_url(soup):
-    link = soup.find("li", class_="next")
+def next_page_url_suffix(soup_object):
+    # Détermine si il y a une prochaine page dans la catégorie active
+    link = soup_object.find("li", class_="next")
     if not link:
         return None
+    # Exemple : page-2.html
     return link.find("a")["href"]
 
 
@@ -18,7 +20,7 @@ def save_to_csv(list_of_books_infos):
     for books_infos in list_of_books_infos:
         for i in range(0, len(books_infos)):
             book_info = books_infos[i]
-            # Suppression des ; dans les titres et descriptions pour éviter des conflits avec les séparateurs dans le fichier csv
+            # Suppression des ; dans les titres et descriptions pour éviter des conflits avec les séparateurs du fichier csv
             if i == 2 or i == 9:
                 csv += f"{book_info.replace(';', ',')}; "
             else:
