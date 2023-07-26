@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from constants import ALL_CATEGORIES
-from functions import next_page_url_suffix
+from functions import next_page_url_suffix, replace_suffix
 
 
 class Category:
@@ -42,7 +42,7 @@ class Category:
         # Après avoir bouclé sur les livres de la page active, on vérifie si la  page suivante existe
         _next_page_url_suffix = next_page_url_suffix(soup_object)
         if _next_page_url_suffix:
-            next_url = url.replace("index.html", _next_page_url_suffix)
+            next_url = replace_suffix(url, _next_page_url_suffix)
             # Appel récursif si la page suivante existe
             return self.books_url(next_url, urls_relative)
         urls_absolute = []

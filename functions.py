@@ -39,6 +39,10 @@ def pounds_to_euros(pounds):
     return round(pounds * 0.86, 2)
 
 
+def replace_suffix(url: str, new_suffix):
+    return url[0:url.rfind("/")+1] + new_suffix
+
+
 def next_page_url_suffix(soup_object):
     # Détermine si il y a une prochaine page dans la catégorie active
     link = soup_object.find("li", class_="next")
@@ -48,7 +52,7 @@ def next_page_url_suffix(soup_object):
     return link.find("a")["href"]
 
 
-def save_to_csv(list_of_books_infos):
+def save_to_csv(list_of_books_infos, category):
     csv = "product_page_url; universal_product_code; title; price_including_tax; price_excluding_tax; number_available; category; review_rating; image_url; product_description;\n"
     for books_infos in list_of_books_infos:
         for i in range(0, len(books_infos)):
@@ -59,7 +63,7 @@ def save_to_csv(list_of_books_infos):
             else:
                 csv += f"{book_info}; "
         csv += "\n"
-    file = open("output.csv", "w")
+    file = open(f"csv/{category.index}-{category.name}.csv", "w", encoding='utf-8')
     file.write(csv)
     file.close()
 
@@ -72,7 +76,10 @@ def get_page_infos(url, category):
 
     title = product_page.find("h1").text
     image_url = product_page.find(id="product_gallery").find("img")["src"]
-    product_description = product_page.find(id="product_description").find_next_sibling("p").text
+    try:
+        product_description = product_page.find(id="product_description").find_next_sibling("p").text
+    except:
+        product_description = ""
     match product_page.find(class_="star-rating")["class"][1]:
         case "One":   review_rating = 1
         case "Two":   review_rating = 2
