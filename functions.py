@@ -1,5 +1,25 @@
 import requests
 from bs4 import BeautifulSoup
+from constants import ALL_CATEGORIES
+
+
+def print_user_choices():
+    categories_list = []
+    for i in range(1, len(ALL_CATEGORIES)+1):
+        categories_list.append(ALL_CATEGORIES[i])
+    max_length = len(sorted(categories_list, key=lambda x: len(x), reverse=True)[0])
+    text = ""
+    for i in range(0, len(categories_list)):
+        if i % 5 == 0:
+            text += "\n"
+        category = categories_list[i]
+        number_of_spaces = max_length - len(category) + 3
+        text += f"{i + 1} : {category}"
+        for j in range(0, number_of_spaces):
+            text += " "
+        if i < 9:
+            text += " "
+    print(text)
 
 
 def pounds_to_euros(pounds):
