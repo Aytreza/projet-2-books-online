@@ -5,13 +5,13 @@ from constants import ALL_CATEGORIES
 
 def ask_user_choice():
     while True:
-        choice_str = input("Choisissez la catégorie (de 1 à 50) : ")
+        choice_str = input("Choisissez la catégorie (de 0 à 50) : ")
         try:
             choice_int = int(choice_str)
         except ValueError:
             print("ERREUR : choisissez un nombre entre 1 et 50")
         else:
-            if choice_int < 1 or choice_int > 50:
+            if choice_int < 0 or choice_int > 50:
                 print("ERREUR : choisissez un nombre entre 1 et 50")
             else:
                 return choice_int
@@ -21,7 +21,7 @@ def print_user_choices():
     for i in range(1, len(ALL_CATEGORIES)+1):
         categories_list.append(ALL_CATEGORIES[i])
     max_length = len(sorted(categories_list, key=lambda x: len(x), reverse=True)[0])
-    text = ""
+    text = "0 : Toutes les catégories"
     for i in range(0, len(categories_list)):
         if i % 5 == 0:
             text += "\n"

@@ -27,11 +27,19 @@ class Category:
         # http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
         return f"{Category.BASE_URL}{relative_path.replace('../', '')}"
 
-    def books_url(self, url="", urls_relative=[]):
+    def books_url(self, url="", urls_relative=None):
+
         """
-        Si url == "", premier passage dans la fonction, l'url devient self.url
+        QUESTION : si urls_relative initialisé à [], pourquoi urls_relative recommence au début pour chaque catégorie?
+        -> chaque fichier commence par le contenu de celui d'avant
+        """
+
+        """
+        Si url == None, premier passage dans la fonction, l'url devient self.url
         Sinon, cela implique un appel récursif avec l'url de la page suivante
         """
+        if urls_relative is None:
+            urls_relative = []
         if url == "":
             url = self.url()
         page = requests.get(url)
