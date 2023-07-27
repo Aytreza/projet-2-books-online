@@ -82,7 +82,7 @@ def get_page_infos(url, category):
     product_page = soup.find("article", class_="product_page")
 
     title = product_page.find("h1").text
-    image_url = product_page.find(id="product_gallery").find("img")["src"]
+    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../', '')
     try:
         product_description = product_page.find(id="product_description").find_next_sibling("p").text
     except:
