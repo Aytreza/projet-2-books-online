@@ -1,16 +1,20 @@
 from classes import Category
-from functions import get_page_infos, save_to_csv, print_user_choices, ask_user_choice, replace_suffix
+from functions import get_page_infos, save_to_csv, print_user_choices, ask_user_choice, save_to_jpg
 from constants import ALL_CATEGORIES
 import os
 
-# Création du dossier csv si il n'existe pas
+
+# Création des dossiers si ils n'existent pas
 try:
+    os.mkdir('output')
+    os.chdir('output')
     os.mkdir('csv')
+    os.mkdir('images')
 except FileExistsError:
     pass
 
-# Choix des catégories à extraire
 
+# Choix des catégories à extraire
 print_user_choices()
 user_choice = ask_user_choice()
 if user_choice != 0:
