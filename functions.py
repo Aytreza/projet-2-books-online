@@ -70,7 +70,14 @@ def save_to_csv(list_of_books_infos, category):
 
 def get_page_infos(url, category):
 
-    page = requests.get(url)
+    try:
+        page = requests.get(url, timeout=5)
+    except TimeoutError:
+        print("Le serveur a mis trop de temps à répondre")
+        return None
+    except:
+        print("Une erreur est surevnue")
+        return None
     soup = BeautifulSoup(page.content, "html.parser")
     product_page = soup.find("article", class_="product_page")
 
