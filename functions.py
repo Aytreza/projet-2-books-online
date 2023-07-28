@@ -105,7 +105,7 @@ def get_page_infos(url, category):
         price_including_tax,
         price_excluding_tax,
         number_available,
-        category,
+        category.name,
         review_rating,
         image_url,
         product_description,
