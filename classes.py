@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-from constants import ALL_CATEGORIES
 from functions import next_page_url_suffix, replace_suffix
 
 
@@ -9,17 +8,9 @@ class Category:
     BASE_URL = "http://books.toscrape.com/catalogue/"
     BASE_URL_CATEGORIES = f"{BASE_URL}category/books/"
 
-    def __init__(self, index: int):
-        self.index = index
-        self.name = ALL_CATEGORIES[index]
-
-    def url(self):
-        name = self.name
-        # Exemple :
-        # Historical Fiction
-        # historical-fiction_4/index.html
-        url_suffix = f"{name.lower().replace(' ', '-')}_{self.index+1}/index.html" # index + 1 car urls commencent à 2
-        return f"{Category.BASE_URL_CATEGORIES}{url_suffix}"
+    def __init__(self, name: str, url: str):
+        self.name = name
+        self.url = url
 
     def relative_to_absolute_path(relative_path: str):
         # Exemple :
@@ -41,7 +32,7 @@ class Category:
         if urls_relative is None:
             urls_relative = []
         if url == "":
-            url = self.url()
+            url = self.url
         page = requests.get(url)
         soup_object = BeautifulSoup(page.content, "html.parser")
         products = soup_object.find_all("article", class_="product_pod")

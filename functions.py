@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from constants import ALL_CATEGORIES
-import os
+from constants import BASE_URL
+
 
 def ask_user_choice():
     while True:
@@ -16,16 +16,15 @@ def ask_user_choice():
             else:
                 return choice_int
 
-def print_user_choices():
-    categories_list = []
-    for i in range(1, len(ALL_CATEGORIES)+1):
-        categories_list.append(ALL_CATEGORIES[i])
-    max_length = len(sorted(categories_list, key=lambda x: len(x), reverse=True)[0])
+
+def print_user_choices(categories):
+
+    max_length = len(sorted(categories, key=lambda x: len(x[0]), reverse=True)[0])
     text = "0 : Toutes les catégories"
-    for i in range(0, len(categories_list)):
+    for i in range(0, len(categories)):
         if i % 5 == 0:
             text += "\n"
-        category = categories_list[i]
+        category = categories[i][0]
         number_of_spaces = max_length - len(category) + 3
         text += f"{i + 1} : {category}"
         for j in range(0, number_of_spaces):
@@ -40,7 +39,7 @@ def pounds_to_euros(pounds):
 
 
 def replace_suffix(url: str, new_suffix):
-    return url[0:url.rfind("/")+1] + new_suffix
+    return url[0:url.rfind("/") + 1] + new_suffix
 
 
 def next_page_url_suffix(soup_object):
@@ -63,7 +62,7 @@ def save_to_csv(list_of_books_infos, category):
             else:
                 csv += f"{book_info}; "
         csv += "\n"
-    file = open(f"csv/{category.index}-{category.name}.csv", "w", encoding='utf-8')
+    file = open(f"csv/{category.name}.csv", "w", encoding='utf-8')
     file.write(csv)
     file.close()
 
@@ -80,7 +79,6 @@ def save_to_jpg(url, title, category):
 
 
 def get_page_infos(url, category):
-
     try:
         page = requests.get(url, timeout=5)
     except TimeoutError:
@@ -93,7 +91,7 @@ def get_page_infos(url, category):
     product_page = soup.find("article", class_="product_page")
 
     title = product_page.find("h1").text
-    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../', '')
+    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../',                                                                                                             '')
     save_to_jpg(image_url, title, category)
     try:
         product_description = product_page.find(id="product_description").find_next_sibling("p").text
@@ -129,3 +127,18 @@ def get_page_infos(url, category):
         image_url,
         product_description,
     )
+
+
+def get_categories():
+    page = requests.get(BASE_URL)
+    soup_object = BeautifulSoup(page.content, "html.parser")
+    categories_elts = soup_object.find("div", class_="side_categories").find("ul", class_="nav nav-list").find(
+        "ul").find_all("a")
+    categories = []
+    for i in range(0, len(categories_elts)):
+        category = categories_elts[i]
+        categories.append((
+            category.text.lstrip().rstrip(),
+            BASE_URL + category["href"]
+        ))
+    return categories

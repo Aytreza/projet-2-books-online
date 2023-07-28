@@ -1,8 +1,11 @@
 from classes import Category
-from functions import get_page_infos, save_to_csv, print_user_choices, ask_user_choice, save_to_jpg
-from constants import ALL_CATEGORIES
+from functions import get_page_infos, save_to_csv, print_user_choices, ask_user_choice, save_to_jpg, get_categories
 import os
 import shutil
+
+
+categories = get_categories()
+
 
 # Suppression du dossier "output"
 if os.path.exists('output') and os.path.isdir('output'):
@@ -14,19 +17,19 @@ try:
     os.mkdir('csv')
     os.mkdir('images')
     os.chdir('images')
-    for i in range(1, 51):
-        os.mkdir(ALL_CATEGORIES[i])
+    for i in range(0, len(categories)):
+        os.mkdir(categories[i][0])
         # dossier courant = "ouput"
     os.chdir(os.path.dirname(os.getcwd()))
 except FileExistsError:
     pass
 
-
 # Choix des catégories à extraire
-print_user_choices()
+print_user_choices(categories)
 user_choice = ask_user_choice()
 if user_choice != 0:
-    category = Category(user_choice)
+    name, url = categories[user_choice - 1]
+    category = Category(name, url)
     pages_infos = []
     print()
     print("Chargement...")
@@ -39,8 +42,9 @@ if user_choice != 0:
 
 # Toutes les catégories sont extraites
 else:
-    for i in range(1, len(ALL_CATEGORIES) + 1):
-        category = Category(i)
+    for i in range(0, len(categories)):
+        name, url = categories[i]
+        category = Category(name, url)
         pages_infos = []
         print()
         print(category.name)
@@ -53,4 +57,4 @@ else:
             if page_infos:
                 pages_infos.append(page_infos)
         save_to_csv(pages_infos, category)
-        print(f"Fichier {category.index}-{category.name}.csv créé.")
+        print(f"Fichier {category.name}.csv créé.")
