@@ -1,11 +1,9 @@
 from classes import Category
-from functions import get_page_infos, save_to_csv, print_user_choices, ask_user_choice, save_to_jpg, get_categories
+from functions import get_page_infos, print_user_choices, ask_user_choice, get_categories
 import os
 import shutil
 
-
 categories = get_categories()
-
 
 # Suppression du dossier "output"
 if os.path.exists('output') and os.path.isdir('output'):
@@ -19,7 +17,7 @@ try:
     os.chdir('images')
     for i in range(0, len(categories)):
         os.mkdir(categories[i][0])
-        # dossier courant = "ouput"
+        # dossier courant = "output"
     os.chdir(os.path.dirname(os.getcwd()))
 except FileExistsError:
     pass
@@ -36,7 +34,7 @@ if user_choice != 0:
     for book_url in category.books_url():
         print(book_url)
         pages_infos.append(get_page_infos(book_url, category))
-    save_to_csv(pages_infos, category)
+    category.save_to_csv(pages_infos)
     print()
     print("Fichier créé.")
 
@@ -56,5 +54,5 @@ else:
             # page_infos = None en cas de problème avec la requête dans get_page_infos
             if page_infos:
                 pages_infos.append(page_infos)
-        save_to_csv(pages_infos, category)
+        category.save_to_csv(pages_infos)
         print(f"Fichier {category.name}.csv créé.")

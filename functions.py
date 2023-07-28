@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from constants import BASE_URL
+from constants import BASE_URL, BASE_URL_BOOKS
 
 
 def ask_user_choice():
@@ -18,8 +18,8 @@ def ask_user_choice():
 
 
 def print_user_choices(categories):
-
-    max_length = len(sorted(categories, key=lambda x: len(x[0]), reverse=True)[0])
+    sorted_categories = sorted(categories, key=lambda x: len(x[0]), reverse=True)
+    max_length = len(sorted_categories[0][0])
     text = "0 : Toutes les catégories"
     for i in range(0, len(categories)):
         if i % 5 == 0:
@@ -42,7 +42,7 @@ def replace_suffix(url: str, new_suffix):
     return url[0:url.rfind("/") + 1] + new_suffix
 
 
-def next_page_url_suffix(soup_object):
+def next_page_url(soup_object):
     # Détermine si il y a une prochaine page dans la catégorie active
     link = soup_object.find("li", class_="next")
     if not link:
@@ -51,28 +51,11 @@ def next_page_url_suffix(soup_object):
     return link.find("a")["href"]
 
 
-def save_to_csv(list_of_books_infos, category):
-    csv = "product_page_url; universal_product_code; title; price_including_tax; price_excluding_tax; number_available; category; review_rating; image_url; product_description;\n"
-    for books_infos in list_of_books_infos:
-        for i in range(0, len(books_infos)):
-            book_info = books_infos[i]
-            # Suppression des ; dans les titres et descriptions pour éviter des conflits avec les séparateurs du fichier csv
-            if i == 2 or i == 9:
-                csv += f"{book_info.replace(';', ',')}; "
-            else:
-                csv += f"{book_info}; "
-        csv += "\n"
-    file = open(f"csv/{category.name}.csv", "w", encoding='utf-8')
-    file.write(csv)
-    file.close()
-
-
 def save_to_jpg(url, title, category):
     image_data = requests.get(url).content
     # Suppression des caractère interdits, limite du nom de fichier à 80 caractères
     title = title.replace(":", " -").replace("/", " -").replace("\\", "").replace('"', "").replace("*", "-").replace("?", ".")[:80]
     path = f"images/{category.name}/{title}.jpg"
-    print(path)
     file = open(path, "wb")
     file.write(image_data)
     file.close()
@@ -85,13 +68,13 @@ def get_page_infos(url, category):
         print("Le serveur a mis trop de temps à répondre")
         return None
     except:
-        print("Une erreur est surevnue")
+        print("Une erreur est survenue")
         return None
     soup = BeautifulSoup(page.content, "html.parser")
     product_page = soup.find("article", class_="product_page")
 
     title = product_page.find("h1").text
-    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../',                                                                                                             '')
+    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../','')
     save_to_jpg(image_url, title, category)
     try:
         product_description = product_page.find(id="product_description").find_next_sibling("p").text
@@ -142,3 +125,9 @@ def get_categories():
             BASE_URL + category["href"]
         ))
     return categories
+
+def relative_to_absolute_path(relative_path: str):
+    # Exemple :
+    # ../../../tipping-the-velvet_999/index.html
+    # http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
+    return f"{BASE_URL_BOOKS}{relative_path.replace('../', '')}"
