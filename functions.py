@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from constants import ALL_CATEGORIES
-
+import os
 
 def ask_user_choice():
     while True:
@@ -63,15 +63,16 @@ def save_to_csv(list_of_books_infos, category):
             else:
                 csv += f"{book_info}; "
         csv += "\n"
-    file = open(f"output/csv/{category.index}-{category.name}.csv", "w", encoding='utf-8')
+    file = open(f"csv/{category.index}-{category.name}.csv", "w", encoding='utf-8')
     file.write(csv)
     file.close()
 
 
-def save_to_jpg(url, title):
+def save_to_jpg(url, title, category):
     image_data = requests.get(url).content
-    # QUESTION : si on ne passe pas par path, il y a une erreur
-    path = f"output/images/{title}.jpg".replace(":", " -")
+    # Suppression des caractère interdits, limite du nom de fichier à 80 caractères
+    title = title.replace(":", " -").replace("/", " -").replace("\\", "").replace('"', "").replace("*", "-").replace("?", ".")[:80]
+    path = f"images/{category.name}/{title}.jpg"
     print(path)
     file = open(path, "wb")
     file.write(image_data)
@@ -93,7 +94,7 @@ def get_page_infos(url, category):
 
     title = product_page.find("h1").text
     image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../', '')
-    save_to_jpg(image_url, title)
+    save_to_jpg(image_url, title, category)
     try:
         product_description = product_page.find(id="product_description").find_next_sibling("p").text
     except:
