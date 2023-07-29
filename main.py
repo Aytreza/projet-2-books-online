@@ -26,8 +26,10 @@ user_choice = ask_user_choice()
 
 if user_choice != 0:
     # Seule la catégorie choisie est extraite
-    scrap_category(categories, user_choice - 1)
+    category_name, category_url = categories[user_choice - 1]
+    scrap_category(category_name, category_url)
     # Toutes les catégories sont extraites
 else:
     for i in range(0, len(categories)):
-        scrap_category(categories, i)
+        category_name, category_url = categories[i]
+        scrap_category(category_name, category_url)

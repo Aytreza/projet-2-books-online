@@ -15,7 +15,7 @@ def next_page_url(soup_object):
     return link.find("a")["href"]
 
 
-def get_page_infos(url, category):
+def get_books_infos(url, category):
     try:
         page = requests.get(url, timeout=5)
     except TimeoutError:
@@ -81,44 +81,34 @@ def get_categories():
     return categories
 
 
-def get_books_url(url, urls_relative=None):
-
-        """
-        QUESTION : si urls_relative initialisé à [], pourquoi urls_relative recommence au début pour chaque catégorie?
-        -> chaque fichier commence par le contenu de celui d'avant
-        """
-
-        """
-        Si url == None, premier passage dans la fonction, l'url devient self.url
-        Sinon, cela implique un appel récursif avec l'url de la page suivante
-        """
-        if urls_relative is None:
-            urls_relative = []
-        page = requests.get(url)
-        soup_object = BeautifulSoup(page.content, "html.parser")
-        products = soup_object.find_all("article", class_="product_pod")
-        for product in products:
-            urls_relative.append(product.find("h3").find("a")['href'])
-        # Après avoir bouclé sur les livres de la page active, on vérifie si la  page suivante existe
-        _next_page_url_suffix = next_page_url(soup_object)
-        if _next_page_url_suffix:
-            next_url = replace_suffix(url, _next_page_url_suffix)
-            # Appel récursif si la page suivante existe
-            return get_books_url(next_url, urls_relative)
-        urls_absolute = []
-        for url_relative in urls_relative:
-            urls_absolute.append(relative_to_absolute_path(url_relative))
-        return urls_absolute
+def get_books_url(category_url, books_urls=None):
+    # Si url == None, premier passage dans la fonction
+    if books_urls is None:
+        books_urls = []
+    page = requests.get(category_url)
+    soup_object = BeautifulSoup(page.content, "html.parser")
+    products = soup_object.find_all("article", class_="product_pod")
+    for product in products:
+        books_urls.append(product.find("h3").find("a")['href'])
+    # Après avoir bouclé sur les livres de la page active, on vérifie si la  page suivante existe
+    _next_page_url = next_page_url(soup_object)
+    if _next_page_url:
+        next_url = replace_suffix(category_url, _next_page_url)
+        # Appel récursif si la page suivante existe
+        return get_books_url(next_url, books_urls)
+    urls_absolute = []
+    for url_relative in books_urls:
+        urls_absolute.append(relative_to_absolute_path(url_relative))
+    return urls_absolute
 
 
-def scrap_category(categories, index):
-    category_name, category_url = categories[index]
+def scrap_category(category_name, category_url):
     pages_infos = []
     print()
+    print(category_name)
     print("Chargement...")
     for book_url in get_books_url(category_url):
         print(book_url)
-        pages_infos.append(get_page_infos(book_url, category_name))
+        pages_infos.append(get_books_infos(book_url, category_name))
     save_to_csv(category_name, pages_infos)
-    print()
     print(f"Fichier {category_name}.csv créé.")
