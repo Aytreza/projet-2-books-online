@@ -1,46 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
-from constants import BASE_URL, BASE_URL_BOOKS
-
-
-def ask_user_choice():
-    while True:
-        choice_str = input("Choisissez la catégorie (de 0 à 50) : ")
-        try:
-            choice_int = int(choice_str)
-        except ValueError:
-            print("ERREUR : choisissez un nombre entre 1 et 50")
-        else:
-            if choice_int < 0 or choice_int > 50:
-                print("ERREUR : choisissez un nombre entre 1 et 50")
-            else:
-                return choice_int
-
-
-def print_user_choices(categories):
-    sorted_categories = sorted(categories, key=lambda x: len(x[0]), reverse=True)
-    max_length = len(sorted_categories[0][0])
-    text = "0 : Toutes les catégories"
-    for i in range(0, len(categories)):
-        if i % 5 == 0:
-            text += "\n"
-        category = categories[i][0]
-        number_of_spaces = max_length - len(category) + 3
-        text += f"{i + 1} : {category}"
-        for j in range(0, number_of_spaces):
-            text += " "
-        if i < 9:
-            text += " "
-    print(text)
-
-
-def pounds_to_euros(pounds):
-    return round(pounds * 0.86, 2)
-
-
-def replace_suffix(url: str, new_suffix):
-    return url[0:url.rfind("/") + 1] + new_suffix
+from constants import BASE_URL
+from functions.utils import pounds_to_euros, replace_suffix, relative_to_absolute_path
+from functions.write import save_to_jpg, save_to_csv
 
 
 def next_page_url(soup_object):
@@ -50,16 +13,6 @@ def next_page_url(soup_object):
         return None
     # Exemple : page-2.html
     return link.find("a")["href"]
-
-
-def save_to_jpg(url, title, category):
-    image_data = requests.get(url).content
-    # Suppression des caractère interdits, limite du nom de fichier à 80 caractères
-    title = title.replace(":", " -").replace("/", " -").replace("\\", "").replace('"', "").replace("*", "-").replace("?", ".")[:80]
-    path = f"images/{category}/{title}.jpg"
-    file = open(path, "wb")
-    file.write(image_data)
-    file.close()
 
 
 def get_page_infos(url, category):
@@ -127,12 +80,6 @@ def get_categories():
         ))
     return categories
 
-def relative_to_absolute_path(relative_path: str):
-    # Exemple :
-    # ../../../tipping-the-velvet_999/index.html
-    # http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
-    return f"{BASE_URL_BOOKS}{relative_path.replace('../', '')}"
-
 
 def get_books_url(url, urls_relative=None):
 
@@ -163,17 +110,15 @@ def get_books_url(url, urls_relative=None):
             urls_absolute.append(relative_to_absolute_path(url_relative))
         return urls_absolute
 
-def save_to_csv(name, books_infoss):
-    csv = "product_page_url; universal_product_code; title; price_including_tax; price_excluding_tax; number_available; category; review_rating; image_url; product_description;\n"
-    for books_infos in books_infoss:
-        for i in range(0, len(books_infos)):
-            book_info = books_infos[i]
-            # Suppression des ; dans les titres et descriptions pour éviter des conflits avec les séparateurs du fichier csv
-            if i == 2 or i == 9:
-                csv += f"{book_info.replace(';', ',')}; "
-            else:
-                csv += f"{book_info}; "
-        csv += "\n"
-    file = open(f"csv/{name}.csv", "w", encoding='utf-8')
-    file.write(csv)
-    file.close()
+
+def scrap_category(categories, index):
+    category_name, category_url = categories[index]
+    pages_infos = []
+    print()
+    print("Chargement...")
+    for book_url in get_books_url(category_url):
+        print(book_url)
+        pages_infos.append(get_page_infos(book_url, category_name))
+    save_to_csv(category_name, pages_infos)
+    print()
+    print(f"Fichier {category_name}.csv créé.")
