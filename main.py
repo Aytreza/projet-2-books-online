@@ -1,24 +1,22 @@
-from classes import Category
-from functions import print_user_choices, ask_user_choice, get_categories, get_page_infos
+from functions import print_user_choices, ask_user_choice, get_categories, get_page_infos, get_books_url, save_to_csv
 import os
 import shutil
 
+categories = get_categories()
+
 
 def scrap_category(index):
-    name, url = categories[index]
-    category = Category(name, url)
+    category_name, category_url = categories[index]
     pages_infos = []
     print()
     print("Chargement...")
-    for book_url in category.books_url():
+    for book_url in get_books_url(category_url):
         print(book_url)
-        pages_infos.append(get_page_infos(book_url, category))
-    category.save_to_csv(pages_infos)
+        pages_infos.append(get_page_infos(book_url, category_name))
+    save_to_csv(category_name, pages_infos)
     print()
-    print(f"Fichier {category.name}.csv créé.")
+    print(f"Fichier {category_name}.csv créé.")
 
-
-categories = get_categories()
 
 # Suppression du dossier "output"
 if os.path.exists('output') and os.path.isdir('output'):
@@ -35,14 +33,9 @@ for i in range(0, len(categories)):
     # dossier courant = "output"
 os.chdir(os.path.dirname(os.getcwd()))
 
-
 # Choix des catégories à extraire
 print_user_choices(categories)
 user_choice = ask_user_choice()
-
-
-
-
 
 if user_choice != 0:
     # Seule la catégorie choisie est extraite
