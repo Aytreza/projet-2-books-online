@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+
 from constants import BASE_URL, BASE_URL_BOOKS
 
 
@@ -131,3 +132,5 @@ def relative_to_absolute_path(relative_path: str):
     # ../../../tipping-the-velvet_999/index.html
     # http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html
     return f"{BASE_URL_BOOKS}{relative_path.replace('../', '')}"
+
+
