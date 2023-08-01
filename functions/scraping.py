@@ -2,8 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from constants import BASE_URL
-from functions.utils import pounds_to_euros, replace_suffix, relative_to_absolute_path
+from functions.utils import replace_suffix, relative_to_absolute_path
 from functions.write import save_to_jpg, save_to_csv
+from tqdm import tqdm
 
 
 def next_page_url(soup_object):
@@ -19,10 +20,10 @@ def get_books_infos(url, category):
     try:
         page = requests.get(url, timeout=5)
     except TimeoutError:
-        print("Le serveur a mis trop de temps à répondre")
+        print("Le serveur a mis trop de temps à répondre: " + url)
         return None
     except:
-        print("Une erreur est survenue")
+        print("Une erreur est survenue: " + url)
         return None
     soup = BeautifulSoup(page.content, "html.parser")
     product_page = soup.find("article", class_="product_page")
@@ -30,10 +31,12 @@ def get_books_infos(url, category):
     title = product_page.find("h1").text
     image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../','')
     save_to_jpg(image_url, title, category)
-    try:
-        product_description = product_page.find(id="product_description").find_next_sibling("p").text
-    except:
+    _product_description = product_page.find(id="product_description")
+    if _product_description:
+        product_description = _product_description.find_next_sibling("p").text
+    else:
         product_description = ""
+
     match product_page.find(class_="star-rating")["class"][1]:
         case "One":   review_rating = 1
         case "Two":   review_rating = 2
@@ -48,8 +51,8 @@ def get_books_infos(url, category):
         name, value = (row.find("th").text, row.find("td").text)
         infos[name] = value
     universal_product_code = infos["UPC"]
-    price_including_tax = pounds_to_euros(float(infos["Price (incl. tax)"][1:]))
-    price_excluding_tax = pounds_to_euros(float(infos["Price (excl. tax)"][1:]))
+    price_including_tax = float(infos["Price (incl. tax)"][1:])
+    price_excluding_tax = float(infos["Price (excl. tax)"][1:])
     number_available = int(infos["Availability"][10:12])
 
     return (
@@ -104,11 +107,6 @@ def get_books_url(category_url, books_urls=None):
 
 def scrap_category(category_name, category_url):
     pages_infos = []
-    print()
-    print(category_name)
-    print("Chargement...")
-    for book_url in get_books_url(category_url):
-        print(book_url)
+    for book_url in tqdm(get_books_url(category_url), position=0, desc=category_name):
         pages_infos.append(get_books_infos(book_url, category_name))
     save_to_csv(category_name, pages_infos)
-    print(f"Fichier {category_name}.csv créé.")

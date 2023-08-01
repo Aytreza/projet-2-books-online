@@ -2,6 +2,7 @@ from functions.scraping import get_categories, scrap_category
 from functions.user_interface import ask_user_choice, print_user_choices
 import os
 import shutil
+from tqdm import tqdm
 
 categories = get_categories()
 
@@ -30,6 +31,5 @@ if user_choice != 0:
     scrap_category(category_name, category_url)
     # Toutes les catégories sont extraites
 else:
-    for i in range(0, len(categories)):
-        category_name, category_url = categories[i]
+    for category_name, category_url in categories:
         scrap_category(category_name, category_url)

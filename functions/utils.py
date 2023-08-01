@@ -8,7 +8,3 @@ def relative_to_absolute_path(relative_path: str):
 
 def replace_suffix(url: str, new_suffix):
     return url[0:url.rfind("/") + 1] + new_suffix
-
-
-def pounds_to_euros(pounds):
-    return round(pounds * 0.86, 2)
