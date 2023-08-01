@@ -28,32 +28,39 @@ def get_books_infos(url, category):
     soup = BeautifulSoup(page.content, "html.parser")
     product_page = soup.find("article", class_="product_page")
 
-    title = product_page.find("h1").text
-    image_url = "http://books.toscrape.com/" + product_page.find(id="product_gallery").find("img")["src"].replace('../','')
-    save_to_jpg(image_url, title, category)
-    _product_description = product_page.find(id="product_description")
-    if _product_description:
-        product_description = _product_description.find_next_sibling("p").text
-    else:
-        product_description = ""
+    #############  EXTRACT  #############
 
-    match product_page.find(class_="star-rating")["class"][1]:
+    _title = product_page.find("h1").text
+    _image_url = product_page.find(id="product_gallery").find("img")["src"]
+    _product_description = product_page.find(id="product_description")
+    _review_rating = product_page.find(class_="star-rating")["class"][1]
+    infos = {}
+    for row in product_page.find("table", class_="table").find_all("tr"):
+        name, value = (row.find("th").text, row.find("td").text)
+        infos[name] = value
+    _universal_product_code = infos["UPC"]
+    _price_including_tax = infos["Price (incl. tax)"]
+    _price_excluding_tax = infos["Price (excl. tax)"]
+    _number_available = infos["Availability"]
+
+    ############# TRANSFORM #############
+
+    title = _title
+    product_description = "" if _product_description is None else _product_description.find_next_sibling("p").text
+    universal_product_code = _universal_product_code
+    price_including_tax = float(_price_including_tax[1:])
+    price_excluding_tax = float(_price_excluding_tax[1:])
+    number_available = int(_number_available[10:12])
+    match _review_rating:
         case "One":   review_rating = 1
         case "Two":   review_rating = 2
         case "Three": review_rating = 3
         case "Four":  review_rating = 4
         case "Five":  review_rating = 5
         case _: review_rating = -1
-    infos_table = product_page.find("table", class_="table")
-    table_rows = infos_table.find_all("tr")
-    infos = {}
-    for row in table_rows:
-        name, value = (row.find("th").text, row.find("td").text)
-        infos[name] = value
-    universal_product_code = infos["UPC"]
-    price_including_tax = float(infos["Price (incl. tax)"][1:])
-    price_excluding_tax = float(infos["Price (excl. tax)"][1:])
-    number_available = int(infos["Availability"][10:12])
+    image_url = BASE_URL + _image_url.replace('../','')
+
+    save_to_jpg(image_url, title, category)
 
     return (
         url,
