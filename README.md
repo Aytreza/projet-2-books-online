@@ -20,7 +20,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Installation des librairies externes
-voir fichier "requirements.txt"
+pip install -r requirements.txt
 
 # Exécution du script :
 python main.py
